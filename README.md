@@ -82,6 +82,17 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 DOCKERFILE
 ```
 
+```bash
+sudo tee /etc/isaac-ros-cli/docker/Dockerfile.ros_example << 'DOCKERFILE'
+ARG BASE_IMAGE=ubuntu:24.04
+FROM ${BASE_IMAGE}
+
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    apt-get update && apt-get install -y \
+        ros-jazzy-isaac-ros-examples
+DOCKERFILE
+```
+
 That's the entire Dockerfile. It takes the previous layer's image as `BASE_IMAGE`
 (injected automatically by the build system) and installs the AprilTag GEM on top.
 
@@ -101,6 +112,7 @@ docker:
       - isaac_ros
     additional_image_keys:
       - apriltag_gem
+      - ros_example
   run:
     container_name: isaac_ros_apriltag_dev
 EOF
@@ -114,7 +126,7 @@ Edit the system build config to add your key:
 ```bash
 sudo tee /etc/isaac-ros-cli/.build_image_layers.yaml << 'EOF'
 image_key_order:
-  - isaac_ros.noble.ros2_jazzy.realsense.nova_carter.apriltag_gem
+  - isaac_ros.noble.ros2_jazzy.realsense.nova_carter.apriltag_gem.ros_example
 context_overrides:
   isaac_ros: ..
   noble: ..
@@ -125,8 +137,8 @@ remote_builder: []
 EOF
 ```
 
-The only change is appending `.apriltag_gem` to the `image_key_order` list.
-This tells the build system that `apriltag_gem` comes after the other layers.
+The only change is appending `.apriltag_gem` and `.ros_example` and to the `image_key_order` list.
+This tells the build system that `apriltag_gem` and `.ros_example` comes after the other layers.
 
 **Step 7: Build and activate**
 
@@ -135,13 +147,14 @@ isaac-ros activate --build-local --verbose
 ```
 
 What happens under the hood:
-1. CLI reads your config: keys = `[isaac_ros, noble, ros2_jazzy, apriltag_gem]`
+1. CLI reads your config: keys = `[isaac_ros, noble, ros2_jazzy, apriltag_gem, ros_example]`
 2. Build system searches `/etc/isaac-ros-cli/docker/` for each `Dockerfile.<key>`
 3. Builds the chain:
    - `Dockerfile.isaac_ros` (Ubuntu Noble + ROS 2 base + apt repos)
    - `Dockerfile.noble` (CUDA + PyTorch + dev libs) -- receives output of previous as `BASE_IMAGE`
    - `Dockerfile.ros2_jazzy` (full ROS 2 Jazzy) -- receives output of previous as `BASE_IMAGE`
    - `Dockerfile.apriltag_gem` (your layer) -- receives output of previous as `BASE_IMAGE`
+   - `Dockerfile.ros_example` (your layer) -- receives output of previous as `BASE_IMAGE`
 4. Final image is cached locally
 5. Container starts with your workspace mounted at `/workspaces/isaac_ros-dev`
 
