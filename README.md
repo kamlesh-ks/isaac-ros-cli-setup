@@ -100,8 +100,6 @@ docker:
     base_image_keys:
       - isaac_ros
     additional_image_keys:
-      - noble
-      - ros2_jazzy
       - apriltag_gem
   run:
     container_name: isaac_ros_apriltag_dev
