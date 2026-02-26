@@ -60,10 +60,10 @@ sudo isaac-ros init docker
 
 ```bash
 mkdir -p ~/workspaces/isaac_ros-dev
-export ISAAC_ROS_WS=~/workspaces/isaac_ros-dev
+export export ISAAC_ROS_WS="${ISAAC_ROS_WS:-${HOME}/workspaces/isaac_ros-dev/}"
 
 # Make it permanent
-echo 'export ISAAC_ROS_WS=~/workspaces/isaac_ros-dev' >> ~/.bashrc
+echo 'export ISAAC_ROS_WS="${ISAAC_ROS_WS:-${HOME}/workspaces/isaac_ros-dev/}"' >> ~/.bashrc
 ```
 
 **Step 4: Create your custom Dockerfile**
